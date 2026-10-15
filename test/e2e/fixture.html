@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="user-login" content="tester"><title>Settings · GitHub</title>
+<style>
+ body{font:14px system-ui;margin:20px;width:760px} nav a{margin-inline-end:12px}
+ .btn{display:inline-flex;gap:6px;align-items:center;border:1px solid #888;padding:4px 10px;border-radius:6px;background:#f6f8fa}
+ .btn svg{width:16px;height:16px} pre{background:#eee;padding:6px} .row{margin:6px 0}
+</style></head>
+<body>
+<nav id="nav"><a href="#">Pull requests</a><a href="#">Issues</a><a href="#">Settings</a><a href="#">Explore</a></nav>
+<div class="row"><button class="btn" id="signin"><svg viewBox="0 0 16 16"><path d="M0 0h16v16H0z" fill="#2a7"/></svg> Sign in </button>
+ <button class="btn"><span id="cnf">
+   Create new file
+ </span></button> <button class="btn" id="icon-btn"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="#c33"/></svg><span id="cmt">Comment</span></button></div>
+<div class="row"><input id="q" placeholder="Search or jump to…" aria-label="Search" style="width:260px"></div>
+<div class="row"><textarea id="ta" placeholder="Leave a comment">Sign in</textarea></div>
+<div class="row"><span id="ago">3 days ago</span> · <span id="open">12 Open</span> · <span id="stars">1,234 stars</span></div>
+<h2><a class="markdown-title" id="title" href="#">Pull requests</a></h2>
+<div class="markdown-body" id="md"><p>Sign in</p></div>
+<pre><code id="code">Sign in</code></pre>
+<div class="row" id="unknown">
+  <span>Totally new label</span> <span>Totally new label</span>
+  <a href="#" data-hovercard-url="/users/octocat">Totally secret name</a>
+  <span>octocat/secret-repo</span> <span>some user wrote this sentence once</span>
+</div>
+<div class="row"><x-widget id="widget"></x-widget></div>
+<div id="dyn"></div>
+<script>
+  const host=document.getElementById('widget'); const sr=host.attachShadow({mode:'open'});
+  sr.innerHTML='<button>Cancel</button> <span>Totally new label</span>';
+  window.addDyn=(html)=>{const d=document.createElement('div'); d.innerHTML=html; document.getElementById('dyn').appendChild(d); return d;};
+  window.bulk=(n)=>{const f=document.createDocumentFragment(); for(let i=0;i<n;i++){const s=document.createElement('span'); s.textContent=(i%2?'Sign in':'Learn more')+' '+(i%7===0?'':''); f.appendChild(s);} document.getElementById('dyn').appendChild(f);};
+</script>
+</body></html>

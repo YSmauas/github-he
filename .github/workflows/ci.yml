@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['dist/**', 'dict/he.json']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: ולידציה של המילון
+        run: node tools/validate_dict.mjs
+      - name: בדיקות יחידה
+        run: node test/run.mjs
+      - name: בנייה
+        run: node tools/build.mjs
+
+  # אחרי מיזוג ל-main: בונים מחדש את dist/ ואת dict/he.json ומעלים בחזרה.
+  # בזכות זה מילון שעודכן במאגר מגיע למשתמשים דרך העדכון האוטומטי של הסקריפט.
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/build.mjs
+      - name: Commit build output
+        run: |
+          git config user.name "github-he-bot"
+          git config user.email "github-he-bot@users.noreply.github.com"
+          git add dict/he.json dist/
+          if git diff --cached --quiet; then echo "אין שינויים"; else
+            git commit -m "build: dictionary + userscript [skip ci]"
+            git push
+          fi

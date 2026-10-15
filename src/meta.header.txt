@@ -1,0 +1,26 @@
+// ==UserScript==
+// @name         GitHub בעברית (github-he)
+// @name:he      GitHub בעברית
+// @namespace    https://github.com/YSmauas/github-he
+// @version      %%VERSION%%
+// @description  תרגום ממשק האתר github.com לעברית, עם מצב איסוף מחרוזות ועדכון אוטומטי של המילון. פרויקט עצמאי, לא קשור ל-GitHub.
+// @author       YSmauas
+// @license      MIT
+// @homepageURL  https://github.com/YSmauas/github-he
+// @supportURL   https://github.com/YSmauas/github-he/issues
+// @match        https://github.com/*
+// @exclude      https://github.com/login/oauth/*
+// @run-at       document-start
+// @noframes
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
+// @grant        GM_registerMenuCommand
+// @grant        GM_xmlhttpRequest
+// @grant        GM_setClipboard
+// @grant        unsafeWindow
+// @connect      raw.githubusercontent.com
+// @connect      cdn.jsdelivr.net
+// @updateURL    https://raw.githubusercontent.com/YSmauas/github-he/main/dist/github-he.meta.js
+// @downloadURL  https://raw.githubusercontent.com/YSmauas/github-he/main/dist/github-he.user.js
+// ==/UserScript==

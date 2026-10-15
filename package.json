@@ -1,0 +1,21 @@
+{
+  "name": "github-he",
+  "version": "0.0.1",
+  "description": "תרגום ממשק github.com לעברית — סקריפט Tampermonkey עם מצב איסוף ועדכון אוטומטי של המילון",
+  "private": true,
+  "license": "MIT",
+  "author": "YSmauas",
+  "repository": { "type": "git", "url": "git+https://github.com/YSmauas/github-he.git" },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "validate": "node tools/validate_dict.mjs",
+    "merge": "node tools/merge_collected.mjs",
+    "test": "node test/run.mjs",
+    "test:e2e": "node test/e2e/run.mjs",
+    "check": "npm run validate && npm test && npm run build"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}
