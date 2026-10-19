@@ -1,13 +1,22 @@
 name: CI
 
+# בכל push ו-PR: בדיקות. אחרי מיזוג ל-main: פרסום של הקבצים הבנויים
+#   1. ענף "dist"  — מקור העדכון האוטומטי של הסקריפט והמילון (raw.githubusercontent / jsDelivr)
+#   2. Release "latest-build" — בנייה אחרונה (מתעדכן בכל שינוי)
+#   3. Release "vX.Y.Z" — נוצר אוטומטית כשמעלים את הגרסה ב-package.json
+# הקבצים הבנויים לא נשמרים ב-main, ולכן אפשר להגן על main (PR + בדיקות חובה) בלי בעיה.
+
 on:
   push:
     branches: [main]
-    paths-ignore: ['dist/**', 'dict/he.json']
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -19,31 +28,80 @@ jobs:
           node-version: 20
       - name: ולידציה של המילון
         run: node tools/validate_dict.mjs
-      - name: בדיקות יחידה
-        run: node test/run.mjs
       - name: בנייה
         run: node tools/build.mjs
+      - name: בדיקות יחידה (כולל בדיקת התוצר הבנוי)
+        run: node test/run.mjs
 
-  # אחרי מיזוג ל-main: בונים מחדש את dist/ ואת dict/he.json ומעלים בחזרה.
-  # בזכות זה מילון שעודכן במאגר מגיע למשתמשים דרך העדכון האוטומטי של הסקריפט.
   publish:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: check
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    concurrency:
+      group: publish
+      cancel-in-progress: false
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node tools/build.mjs
-      - name: Commit build output
+
+      # טוענים את הבנייה הקודמת כדי ש-meta.built לא ישתנה כשהמילון זהה
+      # (אחרת כל לקוח היה מוריד מילון "חדש" אחרי כל מיזוג, גם בלי שינוי בתרגום).
+      - name: Fetch the previous build (dist branch)
         run: |
+          set -e
+          URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          rm -rf /tmp/out
+          if git ls-remote --exit-code --heads "$URL" dist >/dev/null 2>&1; then
+            git clone --quiet --branch dist --depth 1 "$URL" /tmp/out
+            if [ -f /tmp/out/he.json ]; then cp /tmp/out/he.json dict/he.json; fi
+          else
+            git init --quiet -b dist /tmp/out
+            git -C /tmp/out remote add origin "$URL"
+          fi
+
+      - name: Build
+        run: node tools/build.mjs
+
+      - name: Publish to the dist branch
+        id: dist
+        run: |
+          set -e
+          cp dist/github-he.user.js dist/github-he.meta.js dict/he.json /tmp/out/
+          cd /tmp/out
+          sha256sum github-he.user.js github-he.meta.js he.json > SHA256SUMS
           git config user.name "github-he-bot"
           git config user.email "github-he-bot@users.noreply.github.com"
-          git add dict/he.json dist/
-          if git diff --cached --quiet; then echo "אין שינויים"; else
-            git commit -m "build: dictionary + userscript [skip ci]"
-            git push
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "אין שינוי בתוצר הבנוי — לא מפרסמים"
+          else
+            git commit --quiet -m "build from ${GITHUB_SHA::7}"
+            git push --quiet origin dist
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+          mkdir -p /tmp/rel
+          cp github-he.user.js github-he.meta.js he.json SHA256SUMS /tmp/rel/
+
+      - name: Rolling pre-release (latest-build)
+        if: steps.dist.outputs.changed == 'true'
+        run: |
+          gh release delete latest-build --cleanup-tag --yes 2>/dev/null || true
+          gh release create latest-build /tmp/rel/* \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "Latest build (${GITHUB_SHA::7})" \
+            --notes "בנייה אוטומטית של ה-commit ${GITHUB_SHA}, אחרי שכל הבדיקות עברו. להתקנה: github-he.user.js"
+
+      - name: Versioned release (only when package.json has a new version)
+        run: |
+          V="v$(node -p "require('./package.json').version")"
+          if gh release view "$V" >/dev/null 2>&1; then echo "$V כבר קיים"; exit 0; fi
+          FLAGS=""
+          case "$V" in v0.0.*) FLAGS="--prerelease" ;; esac
+          gh release create "$V" /tmp/rel/* --target "$GITHUB_SHA" --title "$V" --generate-notes $FLAGS

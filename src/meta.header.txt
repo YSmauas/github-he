@@ -21,6 +21,6 @@
 // @grant        unsafeWindow
 // @connect      raw.githubusercontent.com
 // @connect      cdn.jsdelivr.net
-// @updateURL    https://raw.githubusercontent.com/YSmauas/github-he/main/dist/github-he.meta.js
-// @downloadURL  https://raw.githubusercontent.com/YSmauas/github-he/main/dist/github-he.user.js
+// @updateURL    https://raw.githubusercontent.com/YSmauas/github-he/dist/github-he.meta.js
+// @downloadURL  https://raw.githubusercontent.com/YSmauas/github-he/dist/github-he.user.js
 // ==/UserScript==

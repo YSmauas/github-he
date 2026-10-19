@@ -8,7 +8,7 @@
 - **מצב איסוף:** הסקריפט מזהה מחרוזות שעוד לא תורגמו, ואפשר לשלוח אותן למפתח בלחיצת כפתור.
 - עובד ברשת של **נטפרי** (מצריך גישה ל-`raw.githubusercontent.com` או ל-`cdn.jsdelivr.net` רק לעדכון המילון; בלי גישה — הסקריפט ממשיך לעבוד עם המילון המובנה).
 
-> ⚠️ **גרסה 0.0.1 — ניסיונית.** נבדקה בדפדפן אמיתי רק מול עמוד דוגמה, ולא מול github.com עצמו. ייתכנו טקסטים שלא יתורגמו, ומקרים שבהם הכיווניות לא מושלמת. דיווחים יתקבלו בברכה.
+> ⚠️ **גרסה 0.0.2 — ניסיונית.** נבדקה בדפדפן אמיתי רק מול עמוד דוגמה, ולא מול github.com עצמו. ייתכנו טקסטים שלא יתורגמו, ומקרים שבהם הכיווניות לא מושלמת. דיווחים יתקבלו בברכה.
 
 > הפרויקט עצמאי ואינו קשור ל-GitHub, Inc. ואינו מאושר על ידה.
 
@@ -19,15 +19,17 @@
 1. התקינו את התוסף **Tampermonkey** (או Violentmonkey) בדפדפן.
 2. פתחו את הקישור הבא, ו-Tampermonkey יציע להתקין:
 
-   **[התקנת הסקריפט](https://raw.githubusercontent.com/YSmauas/github-he/main/dist/github-he.user.js)**
+   **[התקנת הסקריפט](https://raw.githubusercontent.com/YSmauas/github-he/dist/github-he.user.js)**
+
+   (הקובץ נוצר ומתפרסם אוטומטית ע"י ה-CI בכל מיזוג ל-`main`, אחרי שכל הבדיקות עברו. ראו "איפה הקבצים הבנויים" למטה.)
 
 3. היכנסו ל-github.com. הממשק אמור להיות בעברית.
 
-**אם `raw.githubusercontent.com` חסום ברשת שלכם:** הורידו את הקובץ `dist/github-he.user.js` ממאגר זה (או מהפורום), פתחו את Tampermonkey ← "כלי עזר" ← "ייבוא", או גררו את הקובץ לדפדפן.
+**אם `raw.githubusercontent.com` חסום ברשת שלכם:** הורידו את `github-he.user.js` מדף ה-[Releases](https://github.com/YSmauas/github-he/releases) (או מהפורום), ואז Tampermonkey ← "כלי עזר" ← "ייבוא", או גררו את הקובץ לדפדפן.
 
 ### עדכונים
 - **הקוד:** Tampermonkey בודק עדכוני גרסה לבד (הגדרות Tampermonkey ← "בדוק עדכונים").
-- **המילון:** מתעדכן כל כמה שעות מ-`dict/he.json` במאגר, בלי קשר לגרסת הקוד. אפשר לכבות בתפריט, ואפשר לעדכן ידנית ("עדכון המילון עכשיו").
+- **המילון:** מתעדכן כל כמה שעות מהקובץ `he.json` בענף `dist` של המאגר, בלי קשר לגרסת הקוד. אפשר לכבות בתפריט, ואפשר לעדכן ידנית ("עדכון המילון עכשיו").
 
 ---
 
@@ -80,7 +82,7 @@ GHE.untranslated()   // המחרוזות שלא תורגמו בדף הנוכחי
 
 ---
 
-## מגבלות ידועות (0.0.1)
+## מגבלות ידועות (0.0.2)
 
 - משפטים שמורכבים מכמה אלמנטים ("`user` opened this issue `3 days ago`") מתורגמים רק בחלקם. ראו [ROADMAP.md](ROADMAP.md).
 - תאריכים יחסיים (`relative-time`) לא מטופלים עדיין.
@@ -90,6 +92,20 @@ GHE.untranslated()   // המחרוזות שלא תורגמו בדף הנוכחי
 
 ---
 
+## איפה הקבצים הבנויים
+
+הקבצים הבנויים **לא נשמרים ב-`main`** (כך אפשר להגן על `main` עם PR ובדיקות חובה). בכל מיזוג ל-`main`, אחרי שכל הבדיקות עברו, ה-CI מפרסם אותם בשלושה מקומות:
+
+| מה | איפה | מי משתמש |
+|---|---|---|
+| ענף `dist` | `github-he.user.js`, `github-he.meta.js`, `he.json`, `SHA256SUMS` | **עדכון אוטומטי** של הסקריפט (Tampermonkey) ושל המילון |
+| Release `latest-build` (pre-release) | אותם קבצים, מתעדכן בכל שינוי בתוצר | הורדה ידנית של הבנייה האחרונה |
+| Release `vX.Y.Z` | אותם קבצים + הערות שחרור | נוצר אוטומטית כשמעלים את `version` ב-`package.json` |
+
+אם התוצר הבנוי לא השתנה (למשל שינוי תיעוד בלבד), לא מתפרסם דבר חדש.
+
+**הגדרה חד-פעמית אחרי ההעלאה הראשונה:** בדקו ב-Settings ← Actions ← General ← Workflow permissions שמוגדר "Read and write permissions". הענף `dist` והריליסים ייווצרו אוטומטית בהרצה הראשונה.
+
 ## בנייה מקוד המקור
 
 דרישות: Node 18+ (בלי תלויות בזמן ריצה).
@@ -97,18 +113,18 @@ GHE.untranslated()   // המחרוזות שלא תורגמו בדף הנוכחי
 ```bash
 npm run validate   # בדיקת המילון
 npm test           # בדיקות יחידה
-npm run build      # dict/he.json + dist/github-he.user.js
-npm run test:e2e   # בדיקות דפדפן (דורש: npm i && npx playwright install chromium)
+npm run build      # dict/he.json + dist/github-he.user.js (נוצרים מקומית, לא נשמרים ב-git)
+npm run test:e2e   # בונה ואז בדיקות דפדפן (דורש: npm i && npx playwright install chromium)
 ```
 
 מבנה המאגר:
 
 ```
 src/        קוד הסקריפט (מודולים CommonJS)
-dict/       dict/he.json (נוצר) + dict/sources/ (מקורות המילון)
+dict/       dict/sources/ (מקורות המילון); dict/he.json נוצר בבנייה
 tools/      build, validate_dict, merge_collected
 test/       בדיקות יחידה ו-e2e
-dist/       github-he.user.js (נוצר) + github-he.meta.js
+dist/       github-he.user.js + github-he.meta.js (נוצרים בבנייה)
 docs/       SPEC, GLOSSARY, CONTRIBUTING, PRIVACY
 ```
 

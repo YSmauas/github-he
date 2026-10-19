@@ -13,7 +13,7 @@ Issue [collected] ──► node tools/merge_collected.mjs <קבצים/גופי 
                       ──► העברה ל-dict/sources/reviewed.json
                       ──► npm run check ──► Pull Request
 ```
-אחרי מיזוג ל-`main`, ה-CI בונה מחדש את `dict/he.json` ואת `dist/`, והמשתמשים מקבלים את המילון המעודכן בעדכון האוטומטי.
+אחרי מיזוג ל-`main`, ה-CI בונה מחדש ומפרסם את `he.json` ואת הסקריפט בענף `dist` וב-Releases, והמשתמשים מקבלים את המילון המעודכן בעדכון האוטומטי.
 
 ## כללי הקבצים
 | קובץ | תוכן | הערות |
@@ -23,6 +23,8 @@ Issue [collected] ──► node tools/merge_collected.mjs <קבצים/גופי 
 | `dict/sources/seed-app.json` | זרע מהאפליקציה | **לא לערוך ידנית**; לתיקון — להוסיף ל-`manual.json` |
 | `dict/sources/scoped.json` | (אופציונלי) רשומות לפי הקשר | מערך של `{en, he, scope:{path?, selector?}}` |
 | `dict/sources/pending.json` | מועמדים לתרגום | ערך ריק = עוד לא תורגם |
+
+`dict/he.json` ו-`dist/` נוצרים בבנייה, **לא** מוסיפים אותם ל-PR.
 
 ## בדיקות לפני PR
 ```bash

@@ -1,4 +1,4 @@
-# איפיון — גרסה 0.0.1 (מעודכן)
+# איפיון — גרסאות 0.0.x (scope של 0.0.1, מעודכן; הגרסה הנוכחית 0.0.2)
 
 > סקריפט Tampermonkey שמתרגם את הממשק של `github.com` לעברית.
 > מאגר: `YSmauas/github-he`.
@@ -180,8 +180,8 @@ GitHub משתמש באלמנטים `relative-time` / `time-ago`. נבדוק אם
 **למה:** בהתחלה יהיו עדכוני מילון תכופים; לא רוצים לדרוש מהמשתמשים התקנה מחדש של הסקריפט בכל פעם.
 
 **איך:**
-1. ה-CI בונה את `dict/he.json` בכל מיזוג ל-`main` (שדה `meta.built` עם חותמת זמן).
-2. הסקריפט, ~4 שניות אחרי טעינת הדף ולכל היותר פעם ב-6 שעות, מבקש את `dict/he.json` מ-`raw.githubusercontent.com` (גיבוי: `cdn.jsdelivr.net`) באמצעות `GM_xmlhttpRequest` (עוקף את ה-CSP של האתר; דורש `@connect`).
+1. ה-CI בונה את המילון בכל מיזוג ל-`main` ומפרסם אותו כ-`he.json` בענף `dist` (שדה `meta.built` עם חותמת זמן; לא משתנה אם התוכן זהה).
+2. הסקריפט, ~4 שניות אחרי טעינת הדף ולכל היותר פעם ב-6 שעות, מבקש את `he.json` מהענף `dist` ב-`raw.githubusercontent.com` (גיבוי: `cdn.jsdelivr.net/gh/…@dist/`) באמצעות `GM_xmlhttpRequest` (עוקף את ה-CSP של האתר; דורש `@connect`).
 3. אם `meta.built` חדש יותר ממה שהסקריפט משתמש בו — המילון עובר ולידציה ונשמר במטמון (`ghe.dictCache`), ומוחל מיד על הדף הנוכחי.
 4. בטעינה הבאה נבחר המילון הטרי יותר מבין המובנה והמטמון.
 
@@ -385,10 +385,10 @@ github-he/
 │  ├─ bundled-dict.js    (מוחלף בבנייה)
 │  └─ meta.header.txt
 ├─ dict/
-│  ├─ he.json            נוצר
+│  ├─ he.json            נוצר בבנייה (לא ב-git)
 │  └─ sources/           seed-app · reviewed · manual · scoped(אופציונלי) · pending
 ├─ tools/                build · validate_dict · merge_collected · lib
-├─ dist/                 github-he.user.js · github-he.meta.js (נוצרים)
+├─ dist/                 github-he.user.js · github-he.meta.js (נוצרים, לא ב-git)
 ├─ test/                 *.test.js (יחידה) · e2e/ (Chromium) · run.mjs
 ├─ docs/                 SPEC · GLOSSARY · CONTRIBUTING · PRIVACY
 └─ .github/              workflows (ci, label-collected) · ISSUE_TEMPLATE
@@ -411,8 +411,8 @@ Node ≥ 18. חבילת CommonJS קטנה שנכתבה בפרויקט (`tools/bu
 // @grant        GM_xmlhttpRequest / GM_setClipboard / unsafeWindow
 // @connect      raw.githubusercontent.com
 // @connect      cdn.jsdelivr.net
-// @updateURL    …/dist/github-he.meta.js
-// @downloadURL  …/dist/github-he.user.js
+// @updateURL    https://raw.githubusercontent.com/YSmauas/github-he/dist/github-he.meta.js
+// @downloadURL  https://raw.githubusercontent.com/YSmauas/github-he/dist/github-he.user.js
 ```
 `@connect` נדרש רק לעדכון המילון. שליחת ה-Issue היא same-origin ולא דורשת הרשאה.
 
@@ -420,8 +420,14 @@ Node ≥ 18. חבילת CommonJS קטנה שנכתבה בפרויקט (`tools/bu
 `@updateURL` מצביע על `github-he.meta.js` (כותרת בלבד, קל לבדיקה), ו-`@downloadURL` על הסקריפט המלא. העדכון נעשה על ידי Tampermonkey לפי הגדרות המשתמש.
 
 ### 10.4 CI
-- `ci.yml`: ולידציה + בדיקות + build בכל push/PR;
-- אחרי מיזוג ל-`main`: build וקומיט של `dict/he.json` ו-`dist/` (ללא הפעלה חוזרת של ה-CI).
+- `ci.yml` — **`check`** בכל push/PR: ולידציה של המילון, build, בדיקות יחידה (כולל בדיקת התוצר הבנוי);
+- **`publish`** — רק אחרי מיזוג ל-`main` ורק אם `check` עבר:
+  1. טוענים את הבנייה הקודמת מענף `dist` (כדי ש-`meta.built` לא יזוז כשהמילון זהה);
+  2. build;
+  3. אם התוצר השתנה: קומיט לענף **`dist`** (קבצים שטוחים: `github-he.user.js`, `github-he.meta.js`, `he.json`, `SHA256SUMS`) — **זה מקור העדכון האוטומטי**;
+  4. אם התוצר השתנה: Release מתגלגל `latest-build` (pre-release) עם אותם קבצים;
+  5. אם `version` ב-`package.json` חדשה: Release `vX.Y.Z` עם הערות שחרור (pre-release כל עוד 0.0.x).
+- **הקבצים הבנויים לא נשמרים ב-`main`** (`dist/` ו-`dict/he.json` ב-`.gitignore`), כך שאפשר להגן על `main` (PR + בדיקות חובה) בלי שה-CI יצטרך לעקוף את ההגנה. הענף `dist` נכתב רק ע"י ה-CI.
 
 ### 10.5 נטפרי
 - אם `raw.githubusercontent.com` חסום — העדכון האוטומטי נכשל בשקט והסקריפט ממשיך עם המילון המובנה; ההתקנה אפשרית מקובץ.
@@ -505,3 +511,4 @@ Node ≥ 18. חבילת CommonJS קטנה שנכתבה בפרויקט (`tools/bu
 7. **תאריכים יחסיים:** ניסוי ב-0.1.
 8. **טון תרגום:** לשון רבים ניטרלית, שמות פעולה.
 9. **אזור פעולה:** רק `https://github.com/*`.
+10. **הפצה:** הקבצים הבנויים אינם ב-`main`; מתפרסמים ע"י ה-CI בענף `dist` וב-Releases (`latest-build` ו-`vX.Y.Z`), רק אחרי שכל הבדיקות עברו.

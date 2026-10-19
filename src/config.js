@@ -10,9 +10,11 @@ module.exports = {
   SCHEMA: 1, // גרסת מבנה המילון שהסקריפט יודע לקרוא
 
   // עדכון אוטומטי של המילון מהמאגר (לפי סדר ניסיון)
+  // הקבצים הבנויים מתפרסמים ע"י ה-CI בענף "dist" (ולא ב-main)
+  DIST_BRANCH: 'dist',
   DICT_URLS: [
-    `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/dict/he.json`,
-    `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@main/dict/he.json`,
+    `https://raw.githubusercontent.com/${OWNER}/${REPO}/dist/he.json`,
+    `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@dist/he.json`,
   ],
   UPDATE_INTERVAL_MS: 6 * 60 * 60 * 1000,
   UPDATE_DELAY_MS: 4000,        // כמה זמן אחרי טעינת הדף בודקים עדכון

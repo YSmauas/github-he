@@ -1,6 +1,6 @@
 {
   "name": "github-he",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "תרגום ממשק github.com לעברית — סקריפט Tampermonkey עם מצב איסוף ועדכון אוטומטי של המילון",
   "private": true,
   "license": "MIT",
@@ -12,7 +12,7 @@
     "validate": "node tools/validate_dict.mjs",
     "merge": "node tools/merge_collected.mjs",
     "test": "node test/run.mjs",
-    "test:e2e": "node test/e2e/run.mjs",
+    "test:e2e": "node tools/build.mjs && node test/e2e/run.mjs",
     "check": "npm run validate && npm test && npm run build"
   },
   "devDependencies": {

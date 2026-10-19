@@ -4,3 +4,7 @@ node_modules/
 .vscode/
 coverage/
 test/e2e/*.png
+
+# נוצרים ע"י הבנייה ומתפרסמים ע"י ה-CI בענף dist וב-Releases
+dist/
+dict/he.json
